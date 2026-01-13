@@ -34,6 +34,15 @@ type Config struct {
 	CNIExclusive          bool
 	CNIChainingTarget     string
 	CNIExternalRouting    bool
+	// MACAddrMode specifies the MAC address generation mode.
+	// Valid values: "random" (default), "deterministic"
+	MACAddrMode string
+	// FixedMAC specifies a global fixed MAC address for all pods.
+	// When set, all pods will use this MAC address regardless of other settings.
+	FixedMAC string
+	// PrefixMACMap specifies a JSON string mapping pod name prefixes to fixed MAC addresses.
+	// Example: {"sts-": "AA:BB:CC:00:00:02", "app-": "AA:BB:CC:00:00:03"}
+	PrefixMACMap string
 }
 
 type CNIConfigManager interface {
@@ -63,6 +72,9 @@ var defaultConfig = Config{
 	CNIExclusive:          false,
 	CNIChainingTarget:     "",
 	CNIExternalRouting:    false,
+	MACAddrMode:           "random",
+	FixedMAC:              "",
+	PrefixMACMap:          "",
 }
 
 func (cfg Config) Flags(flags *pflag.FlagSet) {
@@ -73,6 +85,9 @@ func (cfg Config) Flags(flags *pflag.FlagSet) {
 	flags.String(option.CNIChainingTarget, defaultConfig.CNIChainingTarget, "CNI network name into which to insert the Cilium chained configuration. Use '*' to select any network.")
 	flags.Bool(option.CNIExclusive, defaultConfig.CNIExclusive, "Whether to remove other CNI configurations")
 	flags.Bool(option.CNIExternalRouting, defaultConfig.CNIExternalRouting, "Whether the chained CNI plugin handles routing on the node")
+	flags.String(option.CNIMACAddrMode, defaultConfig.MACAddrMode, "MAC address generation mode (random|deterministic)")
+	flags.String(option.CNIFixedMAC, defaultConfig.FixedMAC, "Global fixed MAC address for all pods")
+	flags.String(option.CNIPrefixMACMap, defaultConfig.PrefixMACMap, "JSON map of pod name prefixes to fixed MAC addresses")
 }
 
 func enableConfigManager(lc cell.Lifecycle, logger *slog.Logger, cfg Config, dcfg *option.DaemonConfig /*only for .Debug*/) CNIConfigManager {

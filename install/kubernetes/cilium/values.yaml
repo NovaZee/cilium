@@ -802,6 +802,21 @@ cni:
   # -- Configure the path to where the CNI configuration directory is mounted
   # inside the agent pod.
   hostConfDirMountPath: /host/etc/cni/net.d
+  # -- Configure the MAC address generation mode for pods.
+  # Valid values: "random" (default), "deterministic"
+  # - "random": Generate random MAC addresses (default behavior)
+  # - "deterministic": Generate deterministic MAC based on namespace and pod name
+  macAddrMode: random
+  # -- Global fixed MAC address for all pods. When set, all pods will use this
+  # MAC address regardless of other settings. This should be used with caution
+  # as it can cause MAC address conflicts if multiple pods are running simultaneously.
+  # Example: "AA:BB:CC:00:00:01"
+  fixedMac: ""
+  # -- Map of pod name prefixes to fixed MAC addresses. Pods whose names match
+  # a prefix will use the corresponding MAC address. This can be useful for
+  # StatefulSets or other workloads that require stable MAC addresses.
+  # Example: {"sts-": "AA:BB:CC:00:00:02", "app-": "AA:BB:CC:00:00:03"}
+  prefixMacMap: {}
   # -- Specifies the resources for the cni initContainer
   resources:
     requests:

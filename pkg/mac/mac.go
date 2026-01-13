@@ -6,9 +6,11 @@ package mac
 import (
 	"bytes"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"net"
+	"strings"
 )
 
 // Untagged ethernet (IEEE 802.3) frame header len
@@ -143,4 +145,70 @@ func CArrayString(m net.HardwareAddr) string {
 
 	return fmt.Sprintf("{0x%x,0x%x,0x%x,0x%x,0x%x,0x%x}",
 		m[0], m[1], m[2], m[3], m[4], m[5])
+}
+
+// GenerateMACAddressFromPodNamespaceAndName generates a unique MAC address based on namespace and name
+func GenerateMACAddressFromPodNamespaceAndName(ns, podName string) (MAC, error) {
+	// Combine namespace and name to ensure uniqueness
+	input := ns + "/" + podName
+
+	// Create a SHA-256 hasher
+	hasher := sha256.New()
+	// Write the combined input string to the hasher
+	hasher.Write([]byte(input))
+	// Compute the SHA-256 hash
+	hash := hasher.Sum(nil)
+	// Take the first 6 bytes of the hash
+	mac := hash[:6]
+	// Set locally administered addresses bit and reset multicast bit
+	mac[0] = (mac[0] | 0x02) & 0xfe
+	// Format the MAC address in the usual colon-separated hex notation
+	return MAC(mac), nil
+}
+
+// MACConfig specifies the configuration for MAC address generation.
+type MACConfig struct {
+	// FixedMAC specifies a global fixed MAC address for all pods.
+	// When set, all pods will use this MAC address regardless of other settings.
+	FixedMAC string
+	// PrefixMACMap specifies a mapping of pod name prefixes to fixed MAC addresses.
+	// Pods whose names match a prefix will use the corresponding MAC address.
+	PrefixMACMap map[string]string
+	// MACAddrMode specifies the MAC address generation mode.
+	// Valid values: "random" (default), "deterministic"
+	MACAddrMode string
+	// PodNamespace is the Kubernetes namespace of the pod, used for deterministic MAC generation.
+	PodNamespace string
+	// PodName is the Kubernetes pod name, used for deterministic MAC generation and prefix matching.
+	PodName string
+}
+
+// GenerateMACWithConfig generates a MAC address based on the provided configuration.
+// The priority order is:
+// 1. FixedMAC (global fixed MAC)
+// 2. PrefixMACMap (prefix-based fixed MAC)
+// 3. Deterministic (based on namespace and pod name)
+// 4. Random (default)
+func GenerateMACWithConfig(cfg MACConfig) (MAC, error) {
+	// 1. Check for global fixed MAC
+	if cfg.FixedMAC != "" {
+		return ParseMAC(cfg.FixedMAC)
+	}
+
+	// 2. Check for prefix-based fixed MAC
+	if len(cfg.PrefixMACMap) > 0 && cfg.PodName != "" {
+		for prefix, macAddr := range cfg.PrefixMACMap {
+			if strings.HasPrefix(cfg.PodName, prefix) {
+				return ParseMAC(macAddr)
+			}
+		}
+	}
+	// 固定pod mac地址 设计整理
+	// 3. Check for deterministic mode
+	if cfg.MACAddrMode == "deterministic" && cfg.PodNamespace != "" && cfg.PodName != "" {
+		return GenerateMACAddressFromPodNamespaceAndName(cfg.PodNamespace, cfg.PodName)
+	}
+
+	// 4. Default to random generation
+	return GenerateRandMAC()
 }

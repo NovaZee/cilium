@@ -964,6 +964,14 @@ data:
   write-cni-conf-when-ready: {{ .Values.cni.hostConfDirMountPath }}/05-cilium.conflist
   cni-exclusive: {{ .Values.cni.exclusive | quote }}
   cni-log-file: {{ .Values.cni.logFile | quote }}
+  # MAC address configuration
+  cni-mac-addr-mode: {{ .Values.cni.macAddrMode | quote }}
+{{- if .Values.cni.fixedMac }}
+  cni-fixed-mac: {{ .Values.cni.fixedMac | quote }}
+{{- end }}
+{{- if .Values.cni.prefixMacMap }}
+  cni-prefix-mac-map: {{ .Values.cni.prefixMacMap | toJson }}
+{{- end }}
 {{- end }}
 {{- if .Values.cni.uninstall }}
   cni-uninstall: {{ .Values.cni.uninstall | quote }}

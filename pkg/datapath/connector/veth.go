@@ -45,14 +45,30 @@ func SetupVethWithNames(defaultLogger *slog.Logger, lxcIfName, peerIfName string
 	// explicitly setting MAC addrs for both veth ends. This sets
 	// addr_assign_type for NET_ADDR_SET which prevents systemd from changing
 	// the addrs.
-	epHostMAC, err := mac.GenerateRandMAC()
-	if err != nil {
-		return nil, nil, fmt.Errorf("unable to generate rnd mac addr: %w", err)
+
+	// Build MAC config from LinkConfig
+	macCfg := mac.MACConfig{
+		FixedMAC:     cfg.FixedMAC,
+		PrefixMACMap: cfg.PrefixMACMap,
+		MACAddrMode:  cfg.MACAddrMode,
+		PodNamespace: cfg.PodNamespace,
+		PodName:      cfg.PodName,
 	}
-	epLXCMAC, err := mac.GenerateRandMAC()
+
+	// Generate host side MAC address
+	epHostMAC, err := mac.GenerateMACWithConfig(macCfg)
 	if err != nil {
-		return nil, nil, fmt.Errorf("unable to generate rnd mac addr: %w", err)
+		return nil, nil, fmt.Errorf("unable to generate host mac addr: %w", err)
 	}
+
+	// Generate container side MAC address
+	epLXCMAC, err := mac.GenerateMACWithConfig(macCfg)
+	if err != nil {
+		return nil, nil, fmt.Errorf("unable to generate container mac addr: %w", err)
+	}
+
+	// Ensure container side MAC is different from host side (flip last bit)
+	epLXCMAC[5] ^= 0x01
 
 	veth := &netlink.Veth{
 		LinkAttrs: netlink.LinkAttrs{

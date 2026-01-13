@@ -105,7 +105,10 @@ var cniConfigs map[string]string = map[string]string{
     {
        "type": "cilium-cni",
        "enable-debug": {{.Debug | js }},
-       "log-file": "{{.LogFile | js }}"
+       "log-file": "{{.LogFile | js }}{{if .MACAddrMode }},
+       "macAddrMode": "{{.MACAddrMode }}"{{end}}{{if .FixedMAC }},
+       "fixedMac": "{{.FixedMAC }}"{{end}}{{if .PrefixMACMap }},
+       "prefixMacMap": {{.PrefixMACMap}}{{end}}
     }
   ]
 }`,
@@ -132,7 +135,10 @@ var cniConfigs map[string]string = map[string]string{
        "type": "cilium-cni",
        "chaining-mode": "flannel",
        "enable-debug": {{.Debug | js }},
-       "log-file": "{{.LogFile | js }}"
+       "log-file": "{{.LogFile | js }}{{if .MACAddrMode }},
+       "macAddrMode": "{{.MACAddrMode }}"{{end}}{{if .FixedMAC }},
+       "fixedMac": "{{.FixedMAC }}"{{end}}{{if .PrefixMACMap }},
+       "prefixMacMap": {{.PrefixMACMap}}{{end}}
     }
   ]
 }
@@ -145,7 +151,10 @@ var cniConfigs map[string]string = map[string]string{
     {
        "type": "cilium-cni",
        "enable-debug": {{.Debug | js }},
-       "log-file": "{{.LogFile | js }}"
+       "log-file": "{{.LogFile | js }}{{if .MACAddrMode }},
+       "macAddrMode": "{{.MACAddrMode }}"{{end}}{{if .FixedMAC }},
+       "fixedMac": "{{.FixedMAC }}"{{end}}{{if .PrefixMACMap }},
+       "prefixMacMap": {{.PrefixMACMap}}{{end}}
     },
     {
       "type": "portmap",
@@ -162,7 +171,10 @@ const chainedCNIEntry = `
 	"type": "cilium-cni",
 	"chaining-mode": "{{.ChainingMode | js }}",
 	"enable-debug": {{.Debug | js }},
-	"log-file": "{{.LogFile | js }}"
+	"log-file": "{{.LogFile | js }}{{if .MACAddrMode }},
+	"macAddrMode": "{{.MACAddrMode }}"{{end}}{{if .FixedMAC }},
+	"fixedMac": "{{.FixedMAC }}"{{end}}{{if .PrefixMACMap }},
+	"prefixMacMap": {{.PrefixMACMap}}{{end}}
 }
 `
 
@@ -429,16 +441,22 @@ func (c *cniConfigManager) mergeExistingCNIConfig(pluginConfig []byte) ([]byte, 
 }
 
 // renderCNITemplate applies any cni template replacements
-// currently: Debug, LogFile, and ChainingMode
+// currently: Debug, LogFile, ChainingMode, MACAddrMode, FixedMAC, PrefixMACMap
 func (c *cniConfigManager) renderCNITemplate(in string) []byte {
 	data := struct {
 		Debug        bool
 		LogFile      string
 		ChainingMode string
+		MACAddrMode  string
+		FixedMAC     string
+		PrefixMACMap string
 	}{
 		Debug:        c.debug,
 		LogFile:      c.config.CNILogFile,
 		ChainingMode: c.config.CNIChainingMode,
+		MACAddrMode:  c.config.MACAddrMode,
+		FixedMAC:     c.config.FixedMAC,
+		PrefixMACMap: c.config.PrefixMACMap,
 	}
 
 	t := template.Must(template.New("cni").Parse(in))

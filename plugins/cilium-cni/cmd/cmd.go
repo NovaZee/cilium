@@ -676,6 +676,12 @@ func (cmd *Cmd) Add(args *skel.CmdArgs) (err error) {
 			DeviceMTU:      int(conf.DeviceMTU),
 			DeviceHeadroom: uint16(conf.DeviceHeadroom),
 			DeviceTailroom: uint16(conf.DeviceTailroom),
+			// MAC address configuration
+			FixedMAC:     n.FixedMAC,
+			PrefixMACMap: n.PrefixMACMap,
+			MACAddrMode:  n.MACAddrMode,
+			PodNamespace: string(cniArgs.K8S_POD_NAMESPACE),
+			PodName:      string(cniArgs.K8S_POD_NAME),
 		}
 
 		for _, hook := range cmd.onLinkConfigReady {

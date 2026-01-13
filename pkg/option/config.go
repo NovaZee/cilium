@@ -1025,6 +1025,18 @@ const (
 	// binary to use for logging.
 	CNILogFile = "cni-log-file"
 
+	// CNIMACAddrMode specifies the MAC address generation mode for pods.
+	// Valid values: "random" (default), "deterministic"
+	CNIMACAddrMode = "cni-mac-addr-mode"
+
+	// CNIFixedMAC specifies a global fixed MAC address for all pods.
+	// When set, all pods will use this MAC address regardless of other settings.
+	CNIFixedMAC = "cni-fixed-mac"
+
+	// CNIPrefixMACMap specifies a JSON string mapping pod name prefixes to fixed MAC addresses.
+	// Example: {"sts-": "AA:BB:CC:00:00:02", "app-": "AA:BB:CC:00:00:03"}
+	CNIPrefixMACMap = "cni-prefix-mac-map"
+
 	// EnableCiliumEndpointSlice enables the cilium endpoint slicing feature.
 	EnableCiliumEndpointSlice = "enable-cilium-endpoint-slice"
 

@@ -32,6 +32,19 @@ type NetConf struct {
 	LogFormat      string                 `json:"log-format"`
 	LogFile        string                 `json:"log-file"`
 	ChainingMode   string                 `json:"chaining-mode"`
+	// FixedMAC specifies a global fixed MAC address for all pods.
+	// When set, all pods will use this MAC address regardless of other settings.
+	// Example: "AA:BB:CC:00:00:01"
+	FixedMAC string `json:"fixedMac,omitempty"`
+	// PrefixMACMap specifies a mapping of pod name prefixes to fixed MAC addresses.
+	// Pods whose names match a prefix will use the corresponding MAC address.
+	// Example: {"sts-": "AA:BB:CC:00:00:02", "app-": "AA:BB:CC:00:00:03"}
+	PrefixMACMap map[string]string `json:"prefixMacMap,omitempty"`
+	// MACAddrMode specifies the MAC address generation mode.
+	// Valid values: "random" (default), "deterministic"
+	// - "random": Generate random MAC addresses (default behavior)
+	// - "deterministic": Generate deterministic MAC based on namespace and pod name
+	MACAddrMode string `json:"macAddrMode,omitempty"`
 }
 
 // IPAM is the Cilium specific CNI IPAM configuration

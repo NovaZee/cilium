@@ -29,6 +29,20 @@ type LinkConfig struct {
 	DeviceMTU      int
 	DeviceHeadroom uint16
 	DeviceTailroom uint16
+
+	// FixedMAC specifies a global fixed MAC address for all pods.
+	// When set, all pods will use this MAC address regardless of other settings.
+	FixedMAC string
+	// PrefixMACMap specifies a mapping of pod name prefixes to fixed MAC addresses.
+	// Pods whose names match a prefix will use the corresponding MAC address.
+	PrefixMACMap map[string]string
+	// MACAddrMode specifies the MAC address generation mode.
+	// Valid values: "random" (default), "deterministic"
+	MACAddrMode string
+	// PodNamespace is the Kubernetes namespace of the pod, used for deterministic MAC generation.
+	PodNamespace string
+	// PodName is the Kubernetes pod name, used for deterministic MAC generation and prefix matching.
+	PodName string
 }
 
 // Connector configuration. As per BIGTCP, the values here will not be calculated
